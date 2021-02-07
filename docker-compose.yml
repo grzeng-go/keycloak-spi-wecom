@@ -1,0 +1,22 @@
+version: '2'
+services:
+  keycloak:
+    image: registry.cn-hangzhou.aliyuncs.com/yfwj/yfwj-keycloak:12.0.1
+    environment:
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - DB_VENDOR=mysql
+      - DB_ADDR=keycloak-mysql
+      - DB_PORT=3306
+      - DB_DATABASE=keycloak
+      - DB_USER=root
+      - DB_PASSWORD=keycloak
+    ports:
+      - 4080:8080
+    volumes:
+      - ./volumes/keycloak/realm-config:/opt/jboss/keycloak/realm-config
+
+  keycloak-mysql:
+    extends:
+      file: mysql.yml
+      service: keycloak-mysql
