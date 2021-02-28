@@ -1,5 +1,6 @@
 com.yfwj.justauth.social.WechatOpenIdentityProviderFactory
 com.yfwj.justauth.social.DingTalkIdentityProviderFactory
+com.yfwj.justauth.social.DingTalkIdentityEnterpriseProviderFactory
 com.yfwj.justauth.social.BaiduIdentityProviderFactory
 com.yfwj.justauth.social.GiteeIdentityProviderFactory
 com.yfwj.justauth.social.WeiboIdentityProviderFactory

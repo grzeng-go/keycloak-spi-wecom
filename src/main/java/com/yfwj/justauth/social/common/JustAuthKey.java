@@ -17,6 +17,7 @@ import java.util.List;
 public enum JustAuthKey {
   WE_CHAT_OPEN("wechat_open", "微信", AuthWeChatOpenRequest.class),
   DING_TALK("ding_talk", "钉钉", AuthDingTalkRequest.class),
+  DING_TALK_ENTERPRISE("ding_talk_enterprise", "企业钉钉", AuthDingTalkEnterpriseRequest.class),
 
   BAI_DU("baidu", "百度", AuthBaiduRequest.class, Arrays.asList(
     AuthBaiduScope.BASIC.getScope(),
@@ -55,7 +56,7 @@ public enum JustAuthKey {
     AuthHuaweiScope.SCOPE_DRIVE_FILE.getScope(),
     AuthHuaweiScope.SCOPE_DRIVE_APPDATA.getScope()
   )),
-  WEWORK("wework", "企业微信",AuthWeChatEnterpriseRequest.class),
+  WEWORK("wework", "企业微信", AuthWeChatEnterpriseQrcodeRequest.class),
   KUJIALE("kujiale", "酷家乐",AuthKujialeRequest.class),
   MEITUAN("meituan", "美团",AuthMeituanRequest.class),
   ELEME("eleme", "饿了么",AuthElemeRequest.class),
@@ -99,8 +100,10 @@ public enum JustAuthKey {
     String agentId = config.getAgentId();
     String alipayPublicKey = config.getAlipayPublicKey();
     String codingGroupName = config.getCodingGroupName();
+	String appKey = config.getAppKey();
+	String appSecret = config.getAppSecret();
 
-    AuthConfig.AuthConfigBuilder authConfigBuilder = justAuthKey.getAuthConfig().clientId(clientId).clientSecret(clientSecret);
+	AuthConfig.AuthConfigBuilder authConfigBuilder = justAuthKey.getAuthConfig().clientId(clientId).clientSecret(clientSecret);
     switch (justAuthKey) {
       case WEWORK:
         authConfigBuilder.agentId(agentId);
@@ -109,6 +112,9 @@ public enum JustAuthKey {
         authConfigBuilder.alipayPublicKey(alipayPublicKey);
       case CODEING:
         authConfigBuilder.codingGroupName(codingGroupName);
+	  case DING_TALK_ENTERPRISE:
+	  	authConfigBuilder.appKey(appKey);
+	  	authConfigBuilder.appSecret(appSecret);
     }
     return authConfigBuilder.build();
   }

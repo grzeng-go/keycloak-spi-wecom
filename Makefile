@@ -1,4 +1,5 @@
 image:
+	mvn clean package
 	docker build . -t registry.cn-hangzhou.aliyuncs.com/palan/account:12.0.1
 
 push: image

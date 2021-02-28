@@ -1,0 +1,15 @@
+<div class="form-group clearfix">
+	<label class="col-md-2 control-label" for="appKey">{{:: 'appKey' | translate}} <span class="required">*</span></label>
+	<div class="col-md-6">
+		<input class="form-control" id="appKey" type="text" ng-model="identityProvider.config.appKey" required>
+	</div>
+	<kc-tooltip>{{:: 'dingtalk.appKey.tooltip' | translate}}</kc-tooltip>
+</div>
+<div class="form-group clearfix">
+	<label class="col-md-2 control-label" for="appSecret">{{:: 'appSecret' | translate}} <span class="required">*</span></label>
+	<div class="col-md-6">
+		<input class="form-control" id="appSecret" type="text" ng-model="identityProvider.config.appSecret" required>
+	</div>
+	<kc-tooltip>{{:: 'dingtalk.appSecret.tooltip' | translate}}</kc-tooltip>
+</div>
+<div data-ng-include data-src="resourceUrl + '/partials/realm-identity-provider-justauth-ext.html'"></div>

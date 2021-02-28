@@ -16,7 +16,7 @@
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-    <justauth.version>1.15.9</justauth.version>
+    <justauth.version>1.15.10</justauth.version>
   </properties>
 
   <dependencies>
@@ -51,7 +51,7 @@
     <dependency>
       <groupId>me.zhyd.oauth</groupId>
       <artifactId>JustAuth</artifactId>
-      <version>1.15.7</version>
+      <version>${justauth.version}</version>
     </dependency>
 
     <dependency>

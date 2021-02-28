@@ -11,6 +11,7 @@ services:
       - DB_DATABASE=keycloak
       - DB_USER=root
       - DB_PASSWORD=keycloak
+      - ROOT_LOGLEVEL=DEBUG
     ports:
       - 4080:8080
     volumes:
