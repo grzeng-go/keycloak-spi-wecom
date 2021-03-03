@@ -14,6 +14,7 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 	private static final String CODING_GROUP_NAME = "codingGroupName";
 	private static final String APP_KEY = "appKey";
 	private static final String APP_SECRET = "appSecret";
+	private static final String IGNORE_CHECK_STATE = "ignoreCheckState";
 	/**
 	 * 另外的用户属性
 	 * 示例：username=$['extension']['用户名'],avatar=$['avatar'],email=$['email']
@@ -84,5 +85,13 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 
 	public String getAdditionUserJsonFields() {
 		return getConfig().get(ADDITION_USER_JSON_FIELDS);
+	}
+
+	public boolean isIgnoreCheckState() {
+		return Boolean.parseBoolean(getConfig().getOrDefault(IGNORE_CHECK_STATE, "false"));
+	}
+
+	public void setIgnoreCheckState(boolean ignoreCheckState) {
+		getConfig().put(IGNORE_CHECK_STATE, String.valueOf(ignoreCheckState));
 	}
 }
