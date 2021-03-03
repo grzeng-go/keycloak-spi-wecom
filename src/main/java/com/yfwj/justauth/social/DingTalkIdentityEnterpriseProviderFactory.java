@@ -10,6 +10,7 @@ import org.keycloak.broker.social.SocialIdentityProviderFactory;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriBuilder;
 
 /**
@@ -50,14 +51,29 @@ public class DingTalkIdentityEnterpriseProviderFactory extends
 		@Override
 		protected UriBuilder createAuthorizationUrl(AuthenticationRequest request) {
 			UriBuilder builder = super.createAuthorizationUrl(request);
-			String loginHint = request.getAuthenticationSession().getClientNote("login_hint");
-			if ("dingtalk".equals(loginHint)) {
+			if (isFromDingTalk(request)) {
 				String query = builder.build().getQuery();
 				builder = UriBuilder.fromUri("https://oapi.dingtalk.com/connect/oauth2/sns_authorize?" + query);
 				builder.replaceQueryParam("scope", "snsapi_auth");
 			}
 			System.out.println("AuthorizationUrl: " + builder.build().toString());
 			return builder;
+		}
+
+		private boolean isFromDingTalk(AuthenticationRequest request) {
+			return isDingTalkLoginHint(request) || isDingTalkUserAgent(request);
+		}
+
+		private boolean isDingTalkLoginHint(AuthenticationRequest request) {
+			String loginHint = request.getAuthenticationSession().getClientNote("login_hint");
+			return  "dingtalk".equals(loginHint);
+		}
+
+		private boolean isDingTalkUserAgent(AuthenticationRequest request) {
+			HttpHeaders headers = request.getHttpRequest().getHttpHeaders();
+			String userAgent = headers.getHeaderString("User-Agent");
+			System.out.println("userAgent:" + userAgent);
+			return userAgent != null && userAgent.contains("DingTalk");
 		}
 	}
 }
