@@ -51,12 +51,12 @@ public class DingTalkIdentityEnterpriseProviderFactory extends
 		@Override
 		protected UriBuilder createAuthorizationUrl(AuthenticationRequest request) {
 			UriBuilder builder = super.createAuthorizationUrl(request);
-			if (isFromDingTalk(request)) {
+			boolean autoLoginDingTalkEnabled = DingTalkIdentityEnterpriseProvider.this.getConfig().isAutoLoginDingTalkEnabled();
+			if (autoLoginDingTalkEnabled && isFromDingTalk(request)) {
 				String query = builder.build().getQuery();
 				builder = UriBuilder.fromUri("https://oapi.dingtalk.com/connect/oauth2/sns_authorize?" + query);
 				builder.replaceQueryParam("scope", "snsapi_auth");
 			}
-			System.out.println("AuthorizationUrl: " + builder.build().toString());
 			return builder;
 		}
 
@@ -66,13 +66,12 @@ public class DingTalkIdentityEnterpriseProviderFactory extends
 
 		private boolean isDingTalkLoginHint(AuthenticationRequest request) {
 			String loginHint = request.getAuthenticationSession().getClientNote("login_hint");
-			return  "dingtalk".equals(loginHint);
+			return "dingtalk".equals(loginHint);
 		}
 
 		private boolean isDingTalkUserAgent(AuthenticationRequest request) {
 			HttpHeaders headers = request.getHttpRequest().getHttpHeaders();
 			String userAgent = headers.getHeaderString("User-Agent");
-			System.out.println("userAgent:" + userAgent);
 			return userAgent != null && userAgent.contains("DingTalk");
 		}
 	}

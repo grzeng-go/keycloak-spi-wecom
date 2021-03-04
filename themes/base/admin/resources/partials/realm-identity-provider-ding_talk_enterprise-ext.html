@@ -12,4 +12,11 @@
 	</div>
 	<kc-tooltip>{{:: 'dingtalk.appSecret.tooltip' | translate}}</kc-tooltip>
 </div>
+<div class="form-group">
+	<label class="col-md-2 control-label" for="autoLoginDingTalkEnabled">{{:: 'autoLoginDingTalkEnabled' | translate}}</label>
+	<div class="col-md-6">
+		<input ng-model="identityProvider.config.autoLoginDingTalkEnabled" id="autoLoginDingTalkEnabled" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+	</div>
+	<kc-tooltip>{{:: 'dingtalk.autoLoginDingTalkEnabled.tooltip' | translate}}</kc-tooltip>
+</div>
 <div data-ng-include data-src="resourceUrl + '/partials/realm-identity-provider-justauth-ext.html'"></div>

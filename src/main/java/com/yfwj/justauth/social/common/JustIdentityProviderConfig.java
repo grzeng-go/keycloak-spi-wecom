@@ -14,9 +14,19 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 	private static final String CODING_GROUP_NAME = "codingGroupName";
 	private static final String APP_KEY = "appKey";
 	private static final String APP_SECRET = "appSecret";
-	private static final String IGNORE_CHECK_STATE = "ignoreCheckState";
+
 	/**
-	 * 另外的用户属性
+	 * 是否忽略校验 State
+	 */
+	private static final String IGNORE_CHECK_STATE = "ignoreCheckState";
+
+	/**
+	 * 是否开启钉钉内免登陆
+	 */
+	private static final String AUTO_LOGIN_DING_TALK_ENABLED = "autoLoginDingTalkEnabled";
+
+	/**
+	 * 通过 JsonPath 提取用户的属性
 	 * 示例：username=$['extension']['用户名'],avatar=$['avatar'],email=$['email']
 	 */
 	private static final String ADDITION_USER_JSON_FIELDS = "additionUserJsonFields";
@@ -93,5 +103,13 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 
 	public void setIgnoreCheckState(boolean ignoreCheckState) {
 		getConfig().put(IGNORE_CHECK_STATE, String.valueOf(ignoreCheckState));
+	}
+
+	public boolean isAutoLoginDingTalkEnabled() {
+		return Boolean.parseBoolean(getConfig().getOrDefault(AUTO_LOGIN_DING_TALK_ENABLED, "false"));
+	}
+
+	public void setAutoLoginDingTalkEnabled(boolean autoLoginDingTalkEnabled) {
+		getConfig().put(AUTO_LOGIN_DING_TALK_ENABLED, String.valueOf(autoLoginDingTalkEnabled));
 	}
 }
