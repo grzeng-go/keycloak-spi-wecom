@@ -12,21 +12,25 @@ import me.zhyd.oauth.model.AuthUser;
 import me.zhyd.oauth.request.AuthDefaultRequest;
 import me.zhyd.oauth.request.AuthRequest;
 import me.zhyd.oauth.utils.StringUtils;
+import org.keycloak.OAuthErrorException;
 import org.keycloak.broker.oidc.AbstractOAuth2IdentityProvider;
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.social.SocialIdentityProvider;
 import org.keycloak.common.ClientConnection;
+import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.events.EventType;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.services.ErrorPage;
+import org.keycloak.services.messages.Messages;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
@@ -42,6 +46,8 @@ import java.util.Map;
 
 
 public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIdentityProviderConfig> implements SocialIdentityProvider<JustIdentityProviderConfig> {
+
+	public static final String IDENTITY_PROVIDER_UNMATCHED_ATTRIBUTE_ERROR = "identityProviderUnmatchedAttributeErrorMessage";
 
 	public final String DEFAULT_SCOPES = "default";
 	//OAuth2IdentityProviderConfig
@@ -110,47 +116,67 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 		public Response authResponse(@QueryParam("state") String state,
 									 @QueryParam("code") String authorizationCode,
 									 @QueryParam("error") String error) {
-			AuthCallback authCallback = AuthCallback.builder().code(authorizationCode).state(state).build();
-
-			// 没有check 不通过
-			String redirectUri = "https://www.yfwj.com";
-			AuthRequest authRequest = getAuthRequest(AUTH_CONFIG, redirectUri);
-			AuthResponse<AuthUser> response = authRequest.login(authCallback);
-
-			if (response.ok()) {
-				AuthUser authUser = response.getData();
-				JustIdentityProviderConfig config = JustIdentityProvider.this.getConfig();
-				BrokeredIdentityContext federatedIdentity = new BrokeredIdentityContext(authUser.getUuid());
-
-				if (getConfig().isStoreToken()) {
-					// make sure that token wasn't already set by getFederatedIdentity();
-					// want to be able to allow provider to set the token itself.
-					if (federatedIdentity.getToken() == null)
-						federatedIdentity.setToken(authUser.getToken().getAccessToken());
+			if (error != null) {
+				logger.error(error + " for broker login " + getConfig().getProviderId());
+				if (error.equals(ACCESS_DENIED)) {
+					return callback.cancelled(state);
+				} else if (error.equals(OAuthErrorException.LOGIN_REQUIRED) || error.equals(OAuthErrorException.INTERACTION_REQUIRED)) {
+					return callback.error(state, error);
+				} else {
+					return callback.error(state, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
 				}
-
-				Map<String, String> fields = getAdditionUserFields(authUser);
-
-				logger.debug("user-json-fields: " + fields);
-
-				String username = fields.remove("username");
-				federatedIdentity.setUsername(StringUtils.isEmpty(username) ? authUser.getUuid() : username);
-				federatedIdentity.setEmail(fields.remove("email"));
-				federatedIdentity.setFirstName(fields.remove("firstName"));
-				federatedIdentity.setLastName(fields.remove("lastName"));
-				federatedIdentity.setBrokerUserId(authUser.getUuid());
-				federatedIdentity.setIdpConfig(config);
-				federatedIdentity.setIdp(JustIdentityProvider.this);
-				federatedIdentity.setCode(state);
-
-				for (Map.Entry<String, String> entry : fields.entrySet()) {
-					federatedIdentity.setUserAttribute(entry.getKey(), entry.getValue());
-				}
-
-				return this.callback.authenticated(federatedIdentity);
-			} else {
-				return this.errorIdentityProviderLogin("identityProviderUnexpectedErrorMessage");
 			}
+			try {
+
+				AuthCallback authCallback = AuthCallback.builder().code(authorizationCode).state(state).build();
+
+				// 没有check 不通过
+				String redirectUri = "https://www.yfwj.com";
+				AuthRequest authRequest = getAuthRequest(AUTH_CONFIG, redirectUri);
+				AuthResponse<AuthUser> response = authRequest.login(authCallback);
+
+				if (response.ok()) {
+					AuthUser authUser = response.getData();
+					JustIdentityProviderConfig config = JustIdentityProvider.this.getConfig();
+					BrokeredIdentityContext federatedIdentity = new BrokeredIdentityContext(authUser.getUuid());
+
+					if (getConfig().isStoreToken()) {
+						// make sure that token wasn't already set by getFederatedIdentity();
+						// want to be able to allow provider to set the token itself.
+						if (federatedIdentity.getToken() == null)
+							federatedIdentity.setToken(authUser.getToken().getAccessToken());
+					}
+
+					Map<String, String> fields = getAdditionUserFields(authUser);
+
+					logger.debug("user-json-fields: " + fields);
+
+					String username = fields.remove("username");
+					federatedIdentity.setUsername(StringUtils.isEmpty(username) ? authUser.getUuid() : username);
+					federatedIdentity.setEmail(fields.remove("email"));
+					federatedIdentity.setFirstName(fields.remove("firstName"));
+					federatedIdentity.setLastName(fields.remove("lastName"));
+					federatedIdentity.setBrokerUserId(authUser.getUuid());
+					federatedIdentity.setIdpConfig(config);
+					federatedIdentity.setIdp(JustIdentityProvider.this);
+					federatedIdentity.setCode(state);
+
+					for (Map.Entry<String, String> entry : fields.entrySet()) {
+						federatedIdentity.setUserAttribute(entry.getKey(), entry.getValue());
+					}
+
+					return this.callback.authenticated(federatedIdentity);
+				}
+
+			} catch (WebApplicationException e) {
+				return e.getResponse();
+			} catch (UnMatchedException e) {
+				return errorIdentityProviderLogin(IDENTITY_PROVIDER_UNMATCHED_ATTRIBUTE_ERROR, e.getMessage());
+			} catch (Exception e) {
+				logger.error("Failed to make identity provider oauth callback", e);
+			}
+
+			return errorIdentityProviderLogin(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
 		}
 
 		private Map<String, String> getAdditionUserFields(AuthUser authUser) {
@@ -176,10 +202,10 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 
 		}
 
-		private Response errorIdentityProviderLogin(String message) {
-			this.event.event(EventType.LOGIN);
-			this.event.error("identity_provider_login_failure");
-			return ErrorPage.error(this.session, (AuthenticationSessionModel) null, Response.Status.BAD_GATEWAY, message, new Object[0]);
+		private Response errorIdentityProviderLogin(String message, String ...params) {
+			event.event(EventType.LOGIN);
+			event.error(Errors.IDENTITY_PROVIDER_LOGIN_FAILURE);
+			return ErrorPage.error(session, null, Response.Status.BAD_GATEWAY, message, params);
 		}
 	}
 }
