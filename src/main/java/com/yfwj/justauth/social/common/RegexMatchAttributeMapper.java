@@ -2,17 +2,11 @@ package com.yfwj.justauth.social.common;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jboss.logging.Logger;
-import org.keycloak.OAuthErrorException;
 import org.keycloak.broker.provider.AbstractIdentityProviderMapper;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
-import org.keycloak.broker.provider.IdentityBrokerException;
-import org.keycloak.events.Details;
-import org.keycloak.events.Errors;
 import org.keycloak.models.*;
 import org.keycloak.provider.ProviderConfigProperty;
-import org.keycloak.services.ErrorResponseException;
 
-import javax.ws.rs.core.Response;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
