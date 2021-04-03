@@ -8,10 +8,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
@@ -35,21 +32,54 @@ public class AvatarResource {
 	@NoCache
 	@Path("/")
 	@Produces({"image/png", "image/jpeg", "image/gif"})
-	public Response getUserAvatar(@QueryParam("search") String search) {
-		String avatarAttributeName = System.getProperty(AVATAR_ATTRIBUTE_NAME, "avatar");
-		try {
-			RealmModel realm = session.getContext().getRealm();
-			List<UserModel> users = session.users().searchForUser(search, realm);
-			if (!users.isEmpty()) {
-				String avatar = users.get(0).getFirstAttribute(avatarAttributeName);
-				if (StringUtils.isNotEmpty(avatar)) {
-					URI uri = new URI(avatar);
-					return Response.temporaryRedirect(uri).build();
+	public Response getUserAvatar(@QueryParam("search") String search, @QueryParam("attribute") String attribute) {
+		if (StringUtils.isNotEmpty(search)) {
+			try {
+				RealmModel realm = session.getContext().getRealm();
+				List<UserModel> users;
+				if (StringUtils.isNotEmpty(attribute)) {
+					users = session.users().searchForUserByUserAttribute(attribute, search, realm);
+				} else {
+					users = session.users().searchForUser(search, realm);
 				}
+				if (!users.isEmpty()) {
+					String avatarAttributeName = System.getProperty(AVATAR_ATTRIBUTE_NAME, "avatar");
+					String avatar = users.get(0).getFirstAttribute(avatarAttributeName);
+					if (StringUtils.isNotEmpty(avatar)) {
+						URI uri = new URI(avatar);
+						return Response.temporaryRedirect(uri).build();
+					}
+				}
+			} catch (Exception e) {
+				logger.warn(e.getMessage(), e);
 			}
-		} catch (Exception e) {
-			logger.warn(e.getMessage(), e);
 		}
+
+		return Response.ok(new ByteArrayInputStream(defaultAvatar())).build();
+	}
+
+	@GET
+	@NoCache
+	@Path("/{attribute}/{value}")
+	@Produces({"image/png", "image/jpeg", "image/gif"})
+	public Response getUserAvatarByAttribute(@PathParam("attribute") String attribute, @PathParam("value") String value) {
+		if (StringUtils.isNotEmpty(attribute) && StringUtils.isNotEmpty(value) ) {
+			try {
+				RealmModel realm = session.getContext().getRealm();
+				List<UserModel> users = session.users().searchForUserByUserAttribute(attribute, value, realm);
+				if (!users.isEmpty()) {
+					String avatarAttributeName = System.getProperty(AVATAR_ATTRIBUTE_NAME, "avatar");
+					String avatar = users.get(0).getFirstAttribute(avatarAttributeName);
+					if (StringUtils.isNotEmpty(avatar)) {
+						URI uri = new URI(avatar);
+						return Response.temporaryRedirect(uri).build();
+					}
+				}
+			} catch (Exception e) {
+				logger.warn(e.getMessage(), e);
+			}
+		}
+
 		return Response.ok(new ByteArrayInputStream(defaultAvatar())).build();
 	}
 
