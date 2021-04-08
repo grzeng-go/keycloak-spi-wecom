@@ -117,6 +117,14 @@ public class RegexMatchAttributeMapper extends AbstractIdentityProviderMapper {
 	@Override
 	public void updateBrokeredUser(KeycloakSession session, RealmModel realm, UserModel user, IdentityProviderMapperModel mapperModel, BrokeredIdentityContext context) {
 		regexMatchOrReplaceUserAttribute(mapperModel, context);
+		String replacement = mapperModel.getConfig().get(USER_REGEX_REPLACE_TEMPLATE);
+		if (StringUtils.isNotEmpty(replacement)) {
+			String replaceName = mapperModel.getConfig().get(USER_REGEX_REPLACE_NAME);
+			if (StringUtils.isEmpty(replaceName)) {
+				replaceName = mapperModel.getConfig().get(USER_REGEX_ATTRIBUTE);
+			}
+			user.setSingleAttribute(replaceName, context.getUserAttribute(replaceName));
+		}
 	}
 
 

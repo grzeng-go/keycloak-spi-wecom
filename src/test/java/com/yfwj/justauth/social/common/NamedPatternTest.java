@@ -19,4 +19,11 @@ public class NamedPatternTest {
 		assertEquals("mailSuffix = localhost.com", mailSuffix);
 
 	}
+
+	@Test
+	public void matcher() {
+		String regex = "localhost\\.com";
+		Matcher matcher = Pattern.compile(regex).matcher("yuanzhencai@localhost.com");
+		assertTrue(matcher.find());
+	}
 }

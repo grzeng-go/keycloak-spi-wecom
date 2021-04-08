@@ -1,22 +1,17 @@
 package com.yfwj.justauth.social.common;
 
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONPath;
-import com.google.common.base.Splitter;
+import com.yfwj.justauth.social.DingTalkEnterpriseErrorResponseException;
 import me.zhyd.oauth.config.AuthConfig;
 import me.zhyd.oauth.model.AuthCallback;
 import me.zhyd.oauth.model.AuthResponse;
 import me.zhyd.oauth.model.AuthUser;
 import me.zhyd.oauth.request.AuthDefaultRequest;
 import me.zhyd.oauth.request.AuthRequest;
-import me.zhyd.oauth.utils.StringUtils;
 import org.keycloak.OAuthErrorException;
 import org.keycloak.broker.oidc.AbstractOAuth2IdentityProvider;
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
-import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.social.SocialIdentityProvider;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.events.Errors;
@@ -26,7 +21,6 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.messages.Messages;
-import org.keycloak.sessions.AuthenticationSessionModel;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.QueryParam;
@@ -36,8 +30,6 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import java.lang.reflect.Constructor;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author yanfeiwuji
@@ -48,6 +40,7 @@ import java.util.Map;
 public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIdentityProviderConfig> implements SocialIdentityProvider<JustIdentityProviderConfig> {
 
 	public static final String IDENTITY_PROVIDER_UNMATCHED_ATTRIBUTE_ERROR = "identityProviderUnmatchedAttributeErrorMessage";
+	public static final String IDENTITY_PROVIDER_DING_TALK_RESPONSE_ERROR = "identityProviderDingTalkResponseErrorMessage";
 
 	public final String DEFAULT_SCOPES = "default";
 	//OAuth2IdentityProviderConfig
@@ -147,23 +140,14 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 							federatedIdentity.setToken(authUser.getToken().getAccessToken());
 					}
 
-					Map<String, String> fields = getAdditionUserFields(authUser);
-
-					logger.debug("user-json-fields: " + fields);
-
-					String username = fields.remove("username");
-					federatedIdentity.setUsername(StringUtils.isEmpty(username) ? authUser.getUuid() : username);
-					federatedIdentity.setEmail(fields.remove("email"));
-					federatedIdentity.setFirstName(fields.remove("firstName"));
-					federatedIdentity.setLastName(fields.remove("lastName"));
+					federatedIdentity.setUsername(authUser.getUuid());
+					federatedIdentity.setEmail(authUser.getEmail());
 					federatedIdentity.setBrokerUserId(authUser.getUuid());
 					federatedIdentity.setIdpConfig(config);
 					federatedIdentity.setIdp(JustIdentityProvider.this);
 					federatedIdentity.setCode(state);
 
-					for (Map.Entry<String, String> entry : fields.entrySet()) {
-						federatedIdentity.setUserAttribute(entry.getKey(), entry.getValue());
-					}
+					JsonPathUserAttributeMapper.storeUserProfileForMapper(federatedIdentity, authUser.getRawUserInfo(), "JustAuth." + config.getJustAuthKey().getId());
 
 					return this.callback.authenticated(federatedIdentity);
 				}
@@ -172,6 +156,8 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 				return e.getResponse();
 			} catch (UnMatchedException e) {
 				return errorIdentityProviderLogin(IDENTITY_PROVIDER_UNMATCHED_ATTRIBUTE_ERROR, e.getMessage());
+			} catch (DingTalkEnterpriseErrorResponseException e) {
+				return errorIdentityProviderLogin(IDENTITY_PROVIDER_DING_TALK_RESPONSE_ERROR, e.getMessage());
 			} catch (Exception e) {
 				logger.error("Failed to make identity provider oauth callback", e);
 			}
@@ -179,30 +165,7 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 			return errorIdentityProviderLogin(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
 		}
 
-		private Map<String, String> getAdditionUserFields(AuthUser authUser) {
-			JSONObject rawUserInfo = authUser.getRawUserInfo();
-			String additionUserJsonFields = JustIdentityProvider.this.getConfig().getAdditionUserJsonFields();
-			if (StringUtils.isEmpty(additionUserJsonFields)) {
-				return new HashMap<>();
-			}
-			Map<String, String> map = Splitter.on(",").withKeyValueSeparator("=").split(additionUserJsonFields);
-			Map<String, String> result = new HashMap<>();
-
-			try {
-				for (Map.Entry<String, String> entry : map.entrySet()) {
-					Object eval = JSONPath.eval(rawUserInfo, entry.getValue());
-					if (eval != null) {
-						result.put(entry.getKey(), String.valueOf(eval));
-					}
-				}
-			} catch (Exception e) {
-				throw new IdentityBrokerException("Could not obtain user profile: " + JSON.toJSONString(rawUserInfo) + "from json path: " + map.toString(), e);
-			}
-			return result;
-
-		}
-
-		private Response errorIdentityProviderLogin(String message, String ...params) {
+		private Response errorIdentityProviderLogin(String message, String... params) {
 			event.event(EventType.LOGIN);
 			event.error(Errors.IDENTITY_PROVIDER_LOGIN_FAILURE);
 			return ErrorPage.error(session, null, Response.Status.BAD_GATEWAY, message, params);
