@@ -17,7 +17,6 @@ import java.util.List;
 public enum JustAuthKey {
 	WE_CHAT_OPEN("wechat_open", "微信", AuthWeChatOpenRequest.class),
 	DING_TALK("ding_talk", "钉钉", AuthDingTalkRequest.class),
-	DING_TALK_ENTERPRISE("ding_talk_enterprise", "企业钉钉", AuthDingTalkEnterpriseRequest.class),
 
 	BAI_DU("baidu", "百度", AuthBaiduRequest.class, Arrays.asList(
 			AuthBaiduScope.BASIC.getScope(),
@@ -100,8 +99,6 @@ public enum JustAuthKey {
 		String agentId = config.getAgentId();
 		String alipayPublicKey = config.getAlipayPublicKey();
 		String codingGroupName = config.getCodingGroupName();
-		String appKey = config.getAppKey();
-		String appSecret = config.getAppSecret();
 		boolean ignoreCheckState = config.isIgnoreCheckState();
 
 		AuthConfig.AuthConfigBuilder authConfigBuilder = justAuthKey
@@ -117,9 +114,6 @@ public enum JustAuthKey {
 				authConfigBuilder.alipayPublicKey(alipayPublicKey);
 			case CODEING:
 				authConfigBuilder.codingGroupName(codingGroupName);
-			case DING_TALK_ENTERPRISE:
-				authConfigBuilder.appKey(appKey);
-				authConfigBuilder.appSecret(appSecret);
 		}
 		return authConfigBuilder.build();
 	}

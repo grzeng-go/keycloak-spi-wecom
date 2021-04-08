@@ -65,6 +65,10 @@ public class MD5AttributeMapper extends AbstractIdentityProviderMapper {
 
 	public void updateBrokeredUser(KeycloakSession session, RealmModel realm, UserModel user, IdentityProviderMapperModel mapperModel, BrokeredIdentityContext context) {
 		md5(mapperModel, context);
+		String to = mapperModel.getConfig().get(USER_MD5_TO_ATTRIBUTE);
+		if (StringUtils.isNotEmpty(to)) {
+			user.setSingleAttribute(to, context.getUserAttribute(to));
+		}
 	}
 
 	@Override

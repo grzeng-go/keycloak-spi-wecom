@@ -1,5 +1,6 @@
 package com.yfwj.justauth.social.common;
 
+import org.apache.commons.lang3.StringUtils;
 import org.keycloak.broker.provider.AbstractIdentityProviderMapper;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.models.*;
@@ -11,7 +12,7 @@ public class SplitFullnameAttributeMapper extends AbstractIdentityProviderMapper
 
 	public static final String PROVIDER_ID = "split-fullname-attribute-idp-mapper";
 
-	private static final String[] COMPATIBLE_PROVIDERS = Arrays.stream(JustAuthKey.values()).map(JustAuthKey::getId).toArray(String[]::new);
+	private static final String[] COMPATIBLE_PROVIDERS = {ANY_PROVIDER};
 
 	private static final Set<IdentityProviderSyncMode> IDENTITY_PROVIDER_SYNC_MODES = new HashSet<>(Arrays.asList(IdentityProviderSyncMode.values()));
 
@@ -20,8 +21,7 @@ public class SplitFullnameAttributeMapper extends AbstractIdentityProviderMapper
 	private static final String USER_FULLNAME_ATTRIBUTE = "user.fullname";
 
 	static {
-		ProviderConfigProperty property;
-		property = new ProviderConfigProperty();
+		ProviderConfigProperty property = new ProviderConfigProperty();
 		property.setName(USER_FULLNAME_ATTRIBUTE);
 		property.setLabel("User Fullname Attribute Name");
 		property.setHelpText("Split Fullname attribute value to firstName and lastName");
@@ -37,6 +37,14 @@ public class SplitFullnameAttributeMapper extends AbstractIdentityProviderMapper
 	@Override
 	public void updateBrokeredUser(KeycloakSession session, RealmModel realm, UserModel user, IdentityProviderMapperModel mapperModel, BrokeredIdentityContext context) {
 		splitFullnameToFirstAndLastName(mapperModel, context);
+		String firstName = context.getFirstName();
+		if (StringUtils.isNotEmpty(firstName)) {
+			user.setFirstName(firstName);
+		}
+		String lastName = context.getLastName();
+		if (StringUtils.isNotEmpty(lastName)) {
+			user.setLastName(lastName);
+		}
 	}
 
 	private void splitFullnameToFirstAndLastName(IdentityProviderMapperModel mapperModel, BrokeredIdentityContext context) {
@@ -67,7 +75,7 @@ public class SplitFullnameAttributeMapper extends AbstractIdentityProviderMapper
 
 	@Override
 	public String getDisplayType() {
-		return "Attribute Importer";
+		return "Split fullname Attribute Importer";
 	}
 
 	@Override
