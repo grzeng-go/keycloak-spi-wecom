@@ -43,6 +43,7 @@ public class WeworkIdentityProvider extends JustIdentityProvider {
 	private boolean isWeworkUserAgent(AuthenticationRequest request) {
 		HttpHeaders headers = request.getHttpRequest().getHttpHeaders();
 		String userAgent = headers.getHeaderString("User-Agent");
-		return userAgent != null && userAgent.contains("WeChat");
+		// TODO: 2021/4/16 微信手机端进入后使用的手机浏览器，没有微信标识，不好判断
+		return userAgent != null && (userAgent.contains("WeChat") || userAgent.contains("wxwork"));
 	}
 }
