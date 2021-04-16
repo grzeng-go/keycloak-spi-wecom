@@ -23,6 +23,11 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 	 */
 	private static final String AUTO_LOGIN_DING_TALK_ENABLED = "autoLoginDingTalkEnabled";
 
+	/**
+	 * 是否开启微信内免登陆
+	 */
+	private static final String AUTO_LOGIN_WEWORK_ENABLED = "autoLoginWeworkEnabled";
+
 	private JustAuthKey justAuthKey;
 
 	public JustIdentityProviderConfig(IdentityProviderModel model, JustAuthKey justAuthKey) {
@@ -79,5 +84,13 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 
 	public void setAutoLoginDingTalkEnabled(boolean autoLoginDingTalkEnabled) {
 		getConfig().put(AUTO_LOGIN_DING_TALK_ENABLED, String.valueOf(autoLoginDingTalkEnabled));
+	}
+
+	public boolean isAutoLoginWeworkEnabled() {
+		return Boolean.parseBoolean(getConfig().getOrDefault(AUTO_LOGIN_WEWORK_ENABLED, "false"));
+	}
+
+	public void setAutoLoginWeworkEnabled(boolean autoLoginWeworkEnabled) {
+		getConfig().put(AUTO_LOGIN_WEWORK_ENABLED, String.valueOf(autoLoginWeworkEnabled));
 	}
 }

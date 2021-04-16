@@ -27,7 +27,7 @@ public class WeworkIdentityProviderFactory extends
 
   @Override
   public JustIdentityProvider create(KeycloakSession session, IdentityProviderModel model) {
-    return new JustIdentityProvider(session, new JustIdentityProviderConfig(model,JUST_AUTH_KEY));
+    return new WeworkIdentityProvider(session, new JustIdentityProviderConfig(model,JUST_AUTH_KEY));
   }
 
   @Override
