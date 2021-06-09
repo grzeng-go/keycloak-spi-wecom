@@ -8,7 +8,7 @@ import com.yfwj.justauth.social.common.JustAuthKey;
 import com.yfwj.justauth.social.common.UnMatchedException;
 import me.zhyd.oauth.utils.HttpUtils;
 import me.zhyd.oauth.utils.UrlBuilder;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.KeycloakSession;
@@ -134,7 +134,7 @@ public class DingTalkEnterpriseUserInfoMapper extends JsonPathUserAttributeMappe
 		if (userInfo == null) {
 			return;
 		}
-		preprocessJsonObject(userInfo, mapperModel, context);
+		preprocessUserInfoByJson(JSON.toJSONString(userInfo), mapperModel, context);
 		splitFullname(null, mapperModel, context);
 		regexMatch(mapperModel, context);
 		md5(null, mapperModel, context);
@@ -146,7 +146,7 @@ public class DingTalkEnterpriseUserInfoMapper extends JsonPathUserAttributeMappe
 		if (userInfo == null) {
 			return;
 		}
-		updateJsonObject(userInfo, user, mapperModel, context);
+		updateUserInfoByJson(JSON.toJSONString(userInfo), user, mapperModel, context);
 		splitFullname(user, mapperModel, context);
 		regexMatch(mapperModel, context);
 		md5(user, mapperModel, context);
