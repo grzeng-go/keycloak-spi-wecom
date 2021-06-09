@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import com.google.common.base.Splitter;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrSubstitutor;
 import org.jboss.logging.Logger;
 import org.keycloak.broker.provider.AbstractIdentityProviderMapper;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
@@ -35,7 +34,7 @@ public class JsonPathUserAttributeMapper extends AbstractIdentityProviderMapper 
 		ProviderConfigProperty property = new ProviderConfigProperty();
 		property.setName(JUSTAUTH_JSON_PATH_ATTRIBUTE);
 		property.setLabel("User Json Path Attribute Name");
-		property.setHelpText("Import user profile by json path like username=${$['extension']['用户名']},avatar=${$['avatar']},email=${$['email']}");
+		property.setHelpText("Import user profile by json path like username=$['extension']['用户名'],avatar=$['avatar'],email=$['email']");
 		property.setType(ProviderConfigProperty.STRING_TYPE);
 		configProperties.add(property);
 	}
@@ -149,22 +148,22 @@ public class JsonPathUserAttributeMapper extends AbstractIdentityProviderMapper 
 		}
 	}
 
-	private Map<String, String> getValuesByJsonPath(String json, IdentityProviderMapperModel mapperModel) {
+	protected Map<String, String> getValuesByJsonPath(String json, IdentityProviderMapperModel mapperModel) {
 		String attribute = mapperModel.getConfig().get(JUSTAUTH_JSON_PATH_ATTRIBUTE);
 		if (attribute == null || attribute.trim().isEmpty()) {
 			logger.warnf("Attribute is not configured for mapper %s", mapperModel.getName());
 			return null;
 		}
-		attribute = attribute.trim();
 		JSONObject jsonObject = JSON.parseObject(json);
-		StrSubstitutor substitutor = new StrSubstitutor();
-		substitutor.setVariableResolver(new JsonPathStrLookup(jsonObject));
 		Map<String, String> map = Splitter.on(",").withKeyValueSeparator("=").split(attribute);
 		Map<String, String> result = new HashMap<>();
 
 		try {
 			for (Map.Entry<String, String> entry : map.entrySet()) {
-				result.put(entry.getKey(), substitutor.replace(entry.getValue()));
+				Object eval = JSONPath.eval(jsonObject, entry.getValue());
+				if (eval != null) {
+					result.put(entry.getKey(), String.valueOf(eval));
+				}
 			}
 		} catch (Exception e) {
 			throw new IdentityBrokerException("Could not obtain user profile: " + JSON.toJSONString(jsonObject) + "from json path: " + map.toString(), e);
