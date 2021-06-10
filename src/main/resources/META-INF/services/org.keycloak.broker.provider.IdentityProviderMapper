@@ -16,6 +16,7 @@
 #
 
 com.yfwj.justauth.social.common.JsonPathUserAttributeMapper
+com.yfwj.justauth.social.common.JsonExpressionUserAttributeMapper
 com.yfwj.justauth.social.common.SplitFullnameAttributeMapper
 com.yfwj.justauth.social.common.RegexMatchAttributeMapper
 com.yfwj.justauth.social.common.MD5AttributeMapper

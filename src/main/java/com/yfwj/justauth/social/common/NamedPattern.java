@@ -1,6 +1,7 @@
 package com.yfwj.justauth.social.common;
 
-import org.apache.commons.text.StringSubstitutor;
+
+import org.apache.commons.lang.text.StrSubstitutor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +32,7 @@ public class NamedPattern {
 		for (String name : names) {
 			params.put(name, matcher.group(name));
 		}
-		return StringSubstitutor.replace(replacement, params);
+		return StrSubstitutor.replace(replacement, params);
 	}
 
 

@@ -9,16 +9,11 @@ import org.keycloak.broker.social.SocialIdentityProviderFactory;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
 
-/**
- * @author yanfeiwuji
- * @date 2021/1/10 5:48 下午
- */
-
-public class WeworkIdentityProviderFactory extends
+public class WechatMpIdentityProviderFactory extends
   AbstractIdentityProviderFactory<JustIdentityProvider>
   implements SocialIdentityProviderFactory<JustIdentityProvider> {
 
-  public static final JustAuthKey JUST_AUTH_KEY = JustAuthKey.  WEWORK;
+  public static final JustAuthKey JUST_AUTH_KEY = JustAuthKey.  WE_CHAT_MP;
 
   @Override
   public String getName() {
@@ -27,7 +22,7 @@ public class WeworkIdentityProviderFactory extends
 
   @Override
   public JustIdentityProvider create(KeycloakSession session, IdentityProviderModel model) {
-    return new WeworkIdentityProvider(session, new JustIdentityProviderConfig(model,JUST_AUTH_KEY));
+    return new JustIdentityProvider(session, new JustIdentityProviderConfig(model,JUST_AUTH_KEY));
   }
 
   @Override

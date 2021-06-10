@@ -1,7 +1,7 @@
 package com.yfwj.justauth.social.common;
 
 import cn.hutool.crypto.SecureUtil;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.logging.Logger;
 import org.keycloak.broker.provider.AbstractIdentityProviderMapper;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
