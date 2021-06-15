@@ -1,14 +1,15 @@
 package com.yfwj.justauth.social.common;
 
+import cn.hutool.crypto.SecureUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Splitter;
 import com.googlecode.aviator.AviatorEvaluator;
 import com.googlecode.aviator.runtime.function.AbstractFunction;
 import com.googlecode.aviator.runtime.function.FunctionUtils;
-import com.googlecode.aviator.runtime.type.AviatorDouble;
 import com.googlecode.aviator.runtime.type.AviatorNil;
 import com.googlecode.aviator.runtime.type.AviatorObject;
 import com.googlecode.aviator.runtime.type.AviatorString;
+import org.apache.commons.lang.StringUtils;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.provider.ProviderConfigProperty;
@@ -17,6 +18,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class JsonExpressionUserAttributeMapper extends JsonPathUserAttributeMapper {
 
@@ -78,7 +81,10 @@ public class JsonExpressionUserAttributeMapper extends JsonPathUserAttributeMapp
 			for (Map.Entry<String, String> entry : map.entrySet()) {
 				Object eval = AviatorEvaluator.compile(entry.getValue()).execute(env);
 				if (eval != null) {
-					result.put(entry.getKey(), String.valueOf(eval));
+					String value = String.valueOf(eval);
+					if(StringUtils.isNotEmpty(value)) {
+						result.put(entry.getKey(), value);
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -120,6 +126,51 @@ public class JsonExpressionUserAttributeMapper extends JsonPathUserAttributeMapp
 
 		public String getName() {
 			return "lastName";
+		}
+	}
+
+	// regexMatch(email, 'datarx\.cn', '非法的企业邮箱')
+	static class RegexMatchFunction extends AbstractFunction {
+		@Override
+		public AviatorObject call(Map<String, Object> env,
+								  AviatorObject arg1,
+								  AviatorObject arg2,
+								  AviatorObject arg3) {
+
+			String value = FunctionUtils.getStringValue(arg1, env);
+			String regex = FunctionUtils.getStringValue(arg2, env);
+			String message = FunctionUtils.getStringValue(arg3, env);
+			if (StringUtils.isEmpty(message)) {
+				message = "Invalid user";
+			}
+			if (StringUtils.isEmpty(value)) {
+				throw new UnMatchedException(message);
+			}
+			Matcher matcher = Pattern.compile(regex).matcher(value);
+			if (!matcher.find()) {
+				throw new UnMatchedException(message);
+			}
+
+			return AviatorNil.NIL;
+		}
+
+		public String getName() {
+			return "regexMatch";
+		}
+	}
+
+	// md5(org_email)
+	static class MD5Function extends AbstractFunction {
+		@Override
+		public AviatorObject call(Map<String, Object> env,
+								  AviatorObject arg1) {
+			String value = FunctionUtils.getStringValue(arg1, env);
+			String md5 = SecureUtil.md5(value);
+			return new AviatorString(md5);
+		}
+
+		public String getName() {
+			return "md5";
 		}
 	}
 
