@@ -138,9 +138,6 @@ docker-compose up -d
 
 ## 企业微信登录
 
-5. 提取用户属性可以通过 `DingTalk Enterprise User Mapper` 起来实现，比如我们可以根据钉钉通讯录中自定义用户名来作为统一的账户名，头像信息等等
-
-
 ### 创建企业微信应用
 
 1. 登录 [企业微信管理页面](https://work.weixin.qq.com/wework_admin/frame)
@@ -171,7 +168,7 @@ docker-compose up -d
 
     ![wework.jpg](images/wework.jpg)
 
-4. 如果需要提取用户属性可以通过 `Json Expression Attribute Importer` 起来实现，比如我们可以根据企业微信通讯录中自定义用户名来作为统一的账户名，头像信息等等
+4. 如果需要提取用户属性可以通过 `Json Expression Attribute Importer` 起来实现，比如我们可以根据企业微信通讯录中的 `userid` 来作为统一的账户名，头像信息等等
 
     ![JsonExpressionAttributeImporter.jpg](images/JsonExpressionAttributeImporter.jpg)
 
