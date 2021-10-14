@@ -55,7 +55,7 @@ docker-compose up -d
 
     ![dingtalk.jpg](images/dingtalk.jpg)
 
-4. 如果还需要查询钉钉企业成员信息，这个我们就可以通过 `DingTalk Enterprise User Mapper` 起来实现，比如我们可以根据钉钉通讯录中自定义用户名来作为统一的账户名，头像信息等等
+4. 如果需要提取用户属性可以通过 `DingTalk Enterprise User Mapper` 起来实现，比如我们可以根据钉钉通讯录中自定义用户名来作为统一的账户名，头像信息等等
 
     ![mapper.jpg](images/mapper.jpg)
 
@@ -136,7 +136,75 @@ docker-compose up -d
 
     ![member.jpg](images/member.jpg)
 
-
 ## 企业微信登录
+
+5. 提取用户属性可以通过 `DingTalk Enterprise User Mapper` 起来实现，比如我们可以根据钉钉通讯录中自定义用户名来作为统一的账户名，头像信息等等
+
+
+### 创建企业微信应用
+
+1. 登录 [企业微信管理页面](https://work.weixin.qq.com/wework_admin/frame)
+
+2. 创建企业微信应用
+
+    ![wework-app.jpg](images/wework-app.jpg)
+
+3. 设置应用首页地址，查看开发信息, `AgentId, Secret, 企业ID`
+
+    ![wework-base.jpg](images/wework-base.jpg)
+    ![wework-orgId.jpg](images/wework-orgId.jpg)
+    ![wework-home.jpg](images/wework-home.jpg)
+
+4. 在开发者接口中设置可信域名 `http://account.example.org`
+
+    ![wework-callback.jpg](images/wework-callback.jpg)
+
+### 创建企业微信身份提供者
+
+1. 登录 [认证中心管理页面](http://account.example.org/auth/admin)
+
+2. 进入身份提供者列表页面，添加企业微信
+
+    ![wework-provider.jpg](images/wework-provider.jpg)
+
+3. 填写相应配置，`Client ID=企业ID, Client Secret=Secret, agentId=AgentId`
+
+    ![wework.jpg](images/wework.jpg)
+
+4. 如果需要提取用户属性可以通过 `Json Expression Attribute Importer` 起来实现，比如我们可以根据企业微信通讯录中自定义用户名来作为统一的账户名，头像信息等等
+
+    ![JsonExpressionAttributeImporter.jpg](images/JsonExpressionAttributeImporter.jpg)
+
+    这里要特别注意的是 `User Json Expression Attribute Name` 里的内容 `username=userid,email=email,firstName=firstName(name),lastName=lastName(name),name=name,avatar=avatar,mobile=mobile`
+
+    这里个钉钉登录里的不一样的地方就是这里有个特殊的需求，需要拆分用户属性变成两个用户属性，所以原来的 `Json Path` 就实现不了了，所以使用了 [aviator](http://fnil.net/aviator/) 表达式来实现表达式中支持自定义方法，比如 `firstName(name), lastName(name)`
+
+    假设请求企业微信成员详细接口后返回的内容如果是以下的内容的话
+
+    ```json
+    {
+        "errcode": 0,
+        "errmsg": "ok",
+        "userid": "yuanzhencai",
+        "name": "袁振才",
+        "department": [1, 2],
+        "order": [1, 2],
+        "mobile": "18321718279",
+        "gender": "1",
+        "email": "zhencai.yuan@datarx.cn",
+        "is_leader_in_dept": [1, 0],
+        "avatar": "http://wework.qpic.cn/bizmail/9rX6FVuxcn8KERqOFss12SvcYtroRUTU6QQVgibUQxs8RjLS6EUwvTg/0"
+    }
+    ```
+
+    最终这个用户创建的属性为以下内容
+
+    ```text
+    username=yuanzhencai
+    avatar=http://wework.qpic.cn/bizmail/9rX6FVuxcn8KERqOFss12SvcYtroRUTU6QQVgibUQxs8RjLS6EUwvTg/0
+    email=zhencai.yuan@datarx.cn
+    name=袁振才
+    mobile=18321718279
+    ```
 
 ## 公众号登录
