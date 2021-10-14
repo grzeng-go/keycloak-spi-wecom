@@ -55,7 +55,7 @@ docker-compose up -d
 
     ![dingtalk.jpg](images/dingtalk.jpg)
 
-4. 如果还需要查询钉钉企业成员信息，这个我们就可以通过转换起来实现，比如我们可以根据钉钉通讯录中自定义用户名来作为统一的账户名，头像信息等等
+4. 如果还需要查询钉钉企业成员信息，这个我们就可以通过 `DingTalk Enterprise User Mapper` 起来实现，比如我们可以根据钉钉通讯录中自定义用户名来作为统一的账户名，头像信息等等
 
     ![mapper.jpg](images/mapper.jpg)
 
@@ -130,7 +130,7 @@ docker-compose up -d
     mobile=18321718279
     ```
 
-    `extension` 里的值是钉钉企业通讯录里通过 [创建自定义字段](https://oa.dingtalk.com/index_new.htm#/setting/contactInfo)，然后为每个 [成员信息](https://oa.dingtalk.com/hrmregister/web/index#/empManage/onJob) 中设置这个字段的内容后得到的，比如现在我创建的这个 `用户名` 字段，就是代表钉钉用户的扫码登录认证中心后的统一用户名
+    `extension` 里的值是钉钉企业通讯录里通过 [创建自定义字段](https://oa.dingtalk.com/index_new.htm#/setting/contactInfo)，然后为每个 [成员信息](https://oa.dingtalk.com/hrmregister/web/index#/empManage/onJob) 中设置这个字段的内容后得到的，比如现在创建的这个 `用户名` 字段，就是代表钉钉用户的扫码登录认证中心后的统一用户名
 
     ![extension.jpg](images/extension.jpg)
 
