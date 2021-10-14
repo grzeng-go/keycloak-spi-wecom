@@ -13,7 +13,7 @@ services:
       - DB_PASSWORD=keycloak
 #      - ROOT_LOGLEVEL=DEBUG
     ports:
-      - 80:8080
+      - 8080:8080
     volumes:
       - ./volumes/keycloak/realm-config:/opt/jboss/keycloak/realm-config
 
