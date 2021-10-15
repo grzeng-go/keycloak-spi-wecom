@@ -205,3 +205,27 @@ docker-compose up -d
     ```
 
 ## 公众号登录
+
+### 开通网页授权权限
+
+[参考文档](https://developers.weixin.qq.com/doc/offiaccount/OA_Web_Apps/Wechat_webpage_authorization.html)
+
+需要开通 `网页授权获取用户基本信息` 权限，要注意的是 `订阅号无法开通此接口，服务号必须通过微信认证` 或者 `申请开发者资质认证`
+
+开通后就可以得到 `appID` 和 `appsecret`
+
+设置 `授权回调页面域名` 为 `account.example.org`
+
+![wechat-mp-callback.jpg](images/wechat-mp-callback.jpg)
+
+### 创建微信公众号身份提供者
+
+1. 登录 [认证中心管理页面](http://account.example.org/auth/admin)
+
+2. 进入身份提供者列表页面，添加微信公众号
+
+    ![wechar-mp-provider.jpg](images/wechar-mp-provider.jpg)
+
+3. 填写相应配置，`Client ID=appID, Client Secret=appsecret`
+
+    ![wehcat-mp.jpg](images/wehcat-mp.jpg)
