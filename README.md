@@ -55,7 +55,9 @@ docker-compose up -d
 
     ![dingtalk.jpg](images/dingtalk.jpg)
 
-4. 如果需要提取用户属性可以通过 `DingTalk Enterprise User Mapper` 起来实现，比如我们可以根据钉钉通讯录中自定义用户名来作为统一的账户名，头像信息等等
+4. `autoLoginDingTalkEnabled ` 属性是控制是否在钉钉应用中访问自动免密登录，不开启的话就都是扫码登录或者用户名密码登录
+
+5. 如果需要提取用户属性可以通过 `DingTalk Enterprise User Mapper` 起来实现，比如我们可以根据钉钉通讯录中自定义用户名来作为统一的账户名，头像信息等等
 
     ![mapper.jpg](images/mapper.jpg)
 
@@ -168,7 +170,9 @@ docker-compose up -d
 
     ![wework.jpg](images/wework.jpg)
 
-4. 如果需要提取用户属性可以通过 `Json Expression Attribute Importer` 起来实现，比如我们可以根据企业微信通讯录中的 `userid` 来作为统一的账户名，头像信息等等
+4. `autoLoginWeworkEnabled` 属性是控制是否在企业微信应用中访问自动免密登录，不开启的话就都是扫码登录
+
+5. 如果需要提取用户属性可以通过 `Json Expression Attribute Importer` 起来实现，比如我们可以根据企业微信通讯录中的 `userid` 来作为统一的账户名，头像信息等等
 
     ![JsonExpressionAttributeImporter.jpg](images/JsonExpressionAttributeImporter.jpg)
 
@@ -203,6 +207,7 @@ docker-compose up -d
     name=袁振才
     mobile=18321718279
     ```
+
 
 ## 公众号登录
 
