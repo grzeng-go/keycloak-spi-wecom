@@ -234,3 +234,15 @@ docker-compose up -d
 3. 填写相应配置，`Client ID=appID, Client Secret=appsecret`
 
     ![wehcat-mp.jpg](images/wehcat-mp.jpg)
+
+## 头像接口
+
+通过第三方登录后的用户我们都可以提取用户属性，比如头像字段 `avatar`，所以我们可以通过实现一个查询用户头像属性然后重定向就可以了
+
+所以我们可以通过 `http://account.example.org/auth/realms/palan/avatar?search=%{username}` 得到某个用户的头像
+
+但是有的时候某些应用不是很方便得用用户的用户名，比如像 [jira] 里面就只能拿到用户名的 `md5` 值的时候我们就得用新的方案了
+
+其实就是在第三方用户登录时候我们就多提取一个 `md5` 的属性，比如 `DingTalk Enterprise User Mapper` 里的 `MD5 to Attribute` 属性配置就可以新提取一个属性 `md5` 的值
+
+然后我们可以通过 `http://account.example.org/auth/realms/palan/avatar/md5/${usernameMd5}` 得到某个用户的头像
