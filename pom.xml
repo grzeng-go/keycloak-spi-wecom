@@ -16,7 +16,7 @@
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<justauth.version>1.15.10</justauth.version>
+		<justauth.version>1.16.7-SNAPSHOT</justauth.version>
 		<junit-version>4.13.1</junit-version>
 	</properties>
 

@@ -242,7 +242,7 @@ public class DingTalkEnterpriseUserInfoMapper extends JsonPathUserAttributeMappe
 				.queryParam("appkey", key)
 				.queryParam("appsecret", secret)
 				.build();
-		String response = new HttpUtils().get(url);
+		String response = new HttpUtils().get(url).getBody();
 		JSONObject object = JSON.parseObject(response);
 		if (object.getIntValue("errcode") != 0) {
 			throw new DingTalkEnterpriseErrorResponseException(object.getString("errmsg"));
@@ -255,7 +255,7 @@ public class DingTalkEnterpriseUserInfoMapper extends JsonPathUserAttributeMappe
 				.queryParam("access_token", accessToken)
 				.queryParam("unionid", unionId)
 				.build();
-		String response = new HttpUtils().get(url);
+		String response = new HttpUtils().get(url).getBody();
 		JSONObject object = JSON.parseObject(response);
 		if (object.getIntValue("errcode") != 0) {
 			throw new DingTalkEnterpriseErrorResponseException(object.getString("errmsg"));
@@ -268,7 +268,7 @@ public class DingTalkEnterpriseUserInfoMapper extends JsonPathUserAttributeMappe
 				.queryParam("access_token", accessToken)
 				.queryParam("userid", userId)
 				.build();
-		String response = new HttpUtils().get(url);
+		String response = new HttpUtils().get(url).getBody();
 		JSONObject object = JSON.parseObject(response);
 		if (object.getIntValue("errcode") != 0) {
 			throw new DingTalkEnterpriseErrorResponseException(object.getString("errmsg"));

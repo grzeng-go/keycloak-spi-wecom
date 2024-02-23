@@ -114,7 +114,7 @@ public enum JustAuthKey {
 			case ALIPAY:
 				authConfigBuilder.alipayPublicKey(alipayPublicKey);
 			case CODEING:
-				authConfigBuilder.codingGroupName(codingGroupName);
+				authConfigBuilder.domainPrefix(codingGroupName);
 		}
 		return authConfigBuilder.build();
 	}
