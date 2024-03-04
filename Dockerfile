@@ -1,7 +1,22 @@
-FROM  jboss/keycloak:12.0.1
+FROM quay.io/keycloak/keycloak:23.0.7 as builder
 
-## copy themes
-COPY themes /opt/jboss/keycloak/themes
+# Enable health and metrics support
+ENV KC_HEALTH_ENABLED=true
+ENV KC_METRICS_ENABLED=true
 
-## copy jar
-COPY  target/keycloak-justauth-12.0.1-jar-with-dependencies.jar /opt/jboss/keycloak/providers/
+# Configure a database vendor
+ENV KC_DB=postgres
+
+WORKDIR /opt/keycloak
+
+ADD --chown=keycloak:keycloak target/keycloak-justauth-23.0.7-jar-with-dependencies.jar /opt/keycloak/providers/keycloak-justauth.jar
+
+# for demonstration purposes only, please make sure to use proper certificates in production instead
+RUN keytool -genkeypair -storepass password -storetype PKCS12 -keyalg RSA -keysize 2048 -dname "CN=server" -alias server -ext "SAN:c=DNS:localhost,IP:127.0.0.1" -keystore conf/server.keystore
+RUN /opt/keycloak/bin/kc.sh build
+
+FROM quay.io/keycloak/keycloak:latest
+COPY --from=builder /opt/keycloak/ /opt/keycloak/
+
+ENV KC_HOSTNAME=localhost
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]

@@ -2,6 +2,13 @@ package com.yfwj.justauth.social.common;
 
 
 import com.yfwj.justauth.social.DingTalkEnterpriseErrorResponseException;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import me.zhyd.oauth.config.AuthConfig;
 import me.zhyd.oauth.model.AuthCallback;
 import me.zhyd.oauth.model.AuthResponse;
@@ -21,14 +28,8 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.messages.Messages;
+import org.keycloak.sessions.AuthenticationSessionModel;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import java.lang.reflect.Constructor;
 
 /**
@@ -47,7 +48,6 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 	public final AuthConfig AUTH_CONFIG;
 	public final Class<? extends AuthDefaultRequest> tClass;
 
-
 	public JustIdentityProvider(KeycloakSession session, JustIdentityProviderConfig config) {
 		super(session, config);
 		JustAuthKey justAuthKey = config.getJustAuthKey();
@@ -63,7 +63,7 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 		return UriBuilder.fromUri(uri);
 	}
 
-	private AuthRequest getAuthRequest(AuthConfig authConfig, String redirectUri) {
+	public AuthRequest getAuthRequest(AuthConfig authConfig, String redirectUri) {
 		AuthRequest authRequest = null;
 		authConfig.setRedirectUri(redirectUri);
 		try {
@@ -83,57 +83,64 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 
 	@Override
 	public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
-		return new Endpoint(callback, realm, event);
+		return new Endpoint(callback, realm, event, this);
 	}
 
 
-	protected class Endpoint {
+	protected static class Endpoint {
 		protected AuthenticationCallback callback;
 		protected RealmModel realm;
 		protected EventBuilder event;
-		@Context
-		protected KeycloakSession session;
-		@Context
-		protected ClientConnection clientConnection;
-		@Context
-		protected HttpHeaders headers;
 
+		private final JustIdentityProvider provider;
 
-		public Endpoint(AuthenticationCallback callback, RealmModel realm, EventBuilder event) {
+		protected final KeycloakSession session;
+		protected final ClientConnection clientConnection;
+		protected final HttpHeaders headers;
+
+		public Endpoint(AuthenticationCallback callback, RealmModel realm, EventBuilder event, JustIdentityProvider provider) {
 			this.callback = callback;
 			this.realm = realm;
 			this.event = event;
+			this.provider = provider;
+			this.session = provider.session;
+			this.clientConnection = session.getContext().getConnection();
+			this.headers = session.getContext().getRequestHeaders();
 		}
 
 		@GET
+		@Path("")
 		public Response authResponse(@QueryParam("state") String state,
-									 @QueryParam("code") String authorizationCode,
-									 @QueryParam("error") String error) {
-			if (error != null) {
-				logger.error(error + " for broker login " + getConfig().getProviderId());
-				if (error.equals(ACCESS_DENIED)) {
-					return callback.cancelled(state);
-				} else if (error.equals(OAuthErrorException.LOGIN_REQUIRED) || error.equals(OAuthErrorException.INTERACTION_REQUIRED)) {
-					return callback.error(state, error);
-				} else {
-					return callback.error(state, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
-				}
-			}
+																 @QueryParam("code") String authorizationCode,
+																 @QueryParam("error") String error) {
+			JustIdentityProviderConfig providerConfig = provider.getConfig();
 			try {
+				AuthenticationSessionModel authSession = this.callback.getAndVerifyAuthenticationSession(state);
+				session.getContext().setAuthenticationSession(authSession);
+
+				if (error != null) {
+					logger.error(error + " for broker login " + providerConfig.getProviderId());
+					if (error.equals(ACCESS_DENIED)) {
+						return callback.cancelled(providerConfig);
+					} else if (error.equals(OAuthErrorException.LOGIN_REQUIRED) || error.equals(OAuthErrorException.INTERACTION_REQUIRED)) {
+						return callback.error(error);
+					} else {
+						return callback.error(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+					}
+				}
 
 				AuthCallback authCallback = AuthCallback.builder().code(authorizationCode).state(state).build();
 
 				// 没有check 不通过
 				String redirectUri = "https://www.yfwj.com";
-				AuthRequest authRequest = getAuthRequest(AUTH_CONFIG, redirectUri);
+				AuthRequest authRequest = provider.getAuthRequest(provider.AUTH_CONFIG, redirectUri);
 				AuthResponse<AuthUser> response = authRequest.login(authCallback);
 
 				if (response.ok()) {
 					AuthUser authUser = response.getData();
-					JustIdentityProviderConfig config = JustIdentityProvider.this.getConfig();
 					BrokeredIdentityContext federatedIdentity = new BrokeredIdentityContext(authUser.getUuid());
 
-					if (getConfig().isStoreToken()) {
+					if (providerConfig.isStoreToken()) {
 						// make sure that token wasn't already set by getFederatedIdentity();
 						// want to be able to allow provider to set the token itself.
 						if (federatedIdentity.getToken() == null)
@@ -143,11 +150,11 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 					federatedIdentity.setUsername(authUser.getUuid());
 					federatedIdentity.setEmail(authUser.getEmail());
 					federatedIdentity.setBrokerUserId(authUser.getUuid());
-					federatedIdentity.setIdpConfig(config);
-					federatedIdentity.setIdp(JustIdentityProvider.this);
-					federatedIdentity.setCode(state);
+					federatedIdentity.setIdpConfig(providerConfig);
+					federatedIdentity.setIdp(provider);
+					federatedIdentity.setAuthenticationSession(authSession);
 
-					JsonPathUserAttributeMapper.storeUserProfileForMapper(federatedIdentity, authUser.getRawUserInfo(), "JustAuth." + config.getJustAuthKey().getId());
+					JsonPathUserAttributeMapper.storeUserProfileForMapper(federatedIdentity, authUser.getRawUserInfo(), "JustAuth." + providerConfig.getJustAuthKey().getId());
 
 					return this.callback.authenticated(federatedIdentity);
 				}

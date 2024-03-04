@@ -5,8 +5,8 @@ import com.yfwj.justauth.social.common.JustIdentityProviderConfig;
 import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.models.KeycloakSession;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.UriBuilder;
 
 public class WeworkIdentityProvider extends JustIdentityProvider {
 

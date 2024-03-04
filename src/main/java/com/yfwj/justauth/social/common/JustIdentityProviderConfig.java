@@ -28,11 +28,18 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 	 */
 	private static final String AUTO_LOGIN_WEWORK_ENABLED = "autoLoginWeworkEnabled";
 
-	private JustAuthKey justAuthKey;
+	private final JustAuthKey justAuthKey;
+
+	private String displayIconClasses;
 
 	public JustIdentityProviderConfig(IdentityProviderModel model, JustAuthKey justAuthKey) {
+		this(model, justAuthKey, null);
+	}
+
+	public JustIdentityProviderConfig(IdentityProviderModel model, JustAuthKey justAuthKey, String displayIconClasses) {
 		super(model);
 		this.justAuthKey = justAuthKey;
+		this.displayIconClasses = displayIconClasses;
 	}
 
 	public JustIdentityProviderConfig(JustAuthKey justAuthKey) {
@@ -92,5 +99,14 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 
 	public void setAutoLoginWeworkEnabled(boolean autoLoginWeworkEnabled) {
 		getConfig().put(AUTO_LOGIN_WEWORK_ENABLED, String.valueOf(autoLoginWeworkEnabled));
+	}
+
+	public void setDisplayIconClasses(String displayIconClasses) {
+		this.displayIconClasses = displayIconClasses;
+	}
+
+	@Override
+	public String getDisplayIconClasses() {
+		return this.displayIconClasses;
 	}
 }

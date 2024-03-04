@@ -3,11 +3,15 @@ package com.yfwj.justauth.social;
 import com.yfwj.justauth.social.common.JustAuthKey;
 import com.yfwj.justauth.social.common.JustIdentityProvider;
 import com.yfwj.justauth.social.common.JustIdentityProviderConfig;
+import com.yfwj.justauth.social.common.JustauthProviderConfigurationBuilder;
 import org.keycloak.broker.oidc.OAuth2IdentityProviderConfig;
 import org.keycloak.broker.provider.AbstractIdentityProviderFactory;
 import org.keycloak.broker.social.SocialIdentityProviderFactory;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.provider.ProviderConfigProperty;
+
+import java.util.List;
 
 /**
  * @author yanfeiwuji
@@ -35,7 +39,20 @@ public class DingTalkIdentityProviderFactory extends
     return new OAuth2IdentityProviderConfig();
   }
 
-  @Override
+	@Override
+	public List<ProviderConfigProperty> getConfigProperties() {
+		return JustauthProviderConfigurationBuilder.create()
+				.property()
+				.name("autoLoginDingTalkEnabled")
+				.label("autoLoginDingTalkEnabled")
+				.helpText("钉钉内自动登录")
+				.type(ProviderConfigProperty.BOOLEAN_TYPE)
+				.defaultValue(false)
+				.add()
+				.build();
+	}
+
+	@Override
   public String getId() {
     return JUST_AUTH_KEY.getId();
   }
