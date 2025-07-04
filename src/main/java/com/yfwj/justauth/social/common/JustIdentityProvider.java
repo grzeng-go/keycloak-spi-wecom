@@ -138,7 +138,7 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 
 				if (response.ok()) {
 					AuthUser authUser = response.getData();
-					BrokeredIdentityContext federatedIdentity = new BrokeredIdentityContext(authUser.getUuid());
+					BrokeredIdentityContext federatedIdentity = new BrokeredIdentityContext(authUser.getUuid(), providerConfig);
 
 					if (providerConfig.isStoreToken()) {
 						// make sure that token wasn't already set by getFederatedIdentity();
@@ -150,7 +150,7 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 					federatedIdentity.setUsername(authUser.getUuid());
 					federatedIdentity.setEmail(authUser.getEmail());
 					federatedIdentity.setBrokerUserId(authUser.getUuid());
-					federatedIdentity.setIdpConfig(providerConfig);
+					//federatedIdentity.setIdpConfig(providerConfig);
 					federatedIdentity.setIdp(provider);
 					federatedIdentity.setAuthenticationSession(authSession);
 
