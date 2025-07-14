@@ -56,7 +56,7 @@ public enum JustAuthKey {
 			AuthHuaweiScope.SCOPE_DRIVE_FILE.getScope(),
 			AuthHuaweiScope.SCOPE_DRIVE_APPDATA.getScope()
 	)),
-	WEWORK("wework", "企业微信", AuthWeChatEnterpriseQrcodeRequest.class),
+	WEWORK("wework", "企业微信", AuthWeChatEnterpriseQrcodeV2Request.class),
 	KUJIALE("kujiale", "酷家乐", AuthKujialeRequest.class),
 	MEITUAN("meituan", "美团", AuthMeituanRequest.class),
 	ELEME("eleme", "饿了么", AuthElemeRequest.class),

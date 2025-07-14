@@ -66,6 +66,8 @@
 			<groupId>me.zhyd.oauth</groupId>
 			<artifactId>JustAuth</artifactId>
 			<version>${justauth.version}</version>
+			<!--<scope>system</scope>
+			<systemPath>D:/1_workplace/java/JustAuth/target/JustAuth-1.16.7.jar</systemPath>-->
 		</dependency>
 
 		<dependency>

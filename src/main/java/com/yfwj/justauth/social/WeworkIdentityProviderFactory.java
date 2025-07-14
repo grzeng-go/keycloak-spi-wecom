@@ -53,6 +53,20 @@ public class WeworkIdentityProviderFactory extends
             .type(ProviderConfigProperty.BOOLEAN_TYPE)
             .defaultValue(false)
             .add()
+            .property()
+            .name("scopeIsPrivate")
+            .label("scopeIsPrivate")
+            .type(ProviderConfigProperty.BOOLEAN_TYPE)
+            .helpText("网页授权登录时,是否需要授权获取敏感信息(如邮箱/手机等信息),")
+            .defaultValue(false)
+            .add()
+            .property()
+            .name("corpApp")
+            .label("corpApp")
+            .type(ProviderConfigProperty.BOOLEAN_TYPE)
+            .helpText("企业微信Web登录时,是否企业自建/代开发应用登录")
+            .defaultValue(false)
+            .add()
             .build();
   }
 

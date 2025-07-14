@@ -28,6 +28,16 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 	 */
 	private static final String AUTO_LOGIN_WEWORK_ENABLED = "autoLoginWeworkEnabled";
 
+	/**
+	 * 是否要敏感信息
+	 */
+	private static final String SCOPE_IS_PRIVATE = "scopeIsPrivate";
+
+	/**
+	 * 是否企业自建/代开发应用登录
+	 */
+	private static final String CORP_APP = "corpApp";
+
 	private final JustAuthKey justAuthKey;
 
 	private String displayIconClasses;
@@ -108,5 +118,21 @@ public class JustIdentityProviderConfig extends OAuth2IdentityProviderConfig {
 	@Override
 	public String getDisplayIconClasses() {
 		return this.displayIconClasses;
+	}
+
+	public boolean isScopeIsPrivate() {
+		return Boolean.parseBoolean(getConfig().getOrDefault(SCOPE_IS_PRIVATE, "false"));
+	}
+
+	public void setScopeIsPrivate(boolean scopeIsPrivate) {
+		getConfig().put(SCOPE_IS_PRIVATE, String.valueOf(scopeIsPrivate));
+	}
+
+	public boolean isCorpApp() {
+		return Boolean.parseBoolean(getConfig().getOrDefault(CORP_APP, "false"));
+	}
+
+	public void setCorpApp(boolean corpApp) {
+		getConfig().put(SCOPE_IS_PRIVATE, String.valueOf(corpApp));
 	}
 }

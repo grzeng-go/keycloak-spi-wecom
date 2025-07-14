@@ -38,6 +38,7 @@ public class JsonExpressionUserAttributeMapper extends JsonPathUserAttributeMapp
 		configProperties.add(property);
 		AviatorEvaluator.addFunction(new FirstNameFunction());
 		AviatorEvaluator.addFunction(new LastNameFunction());
+		AviatorEvaluator.addFunction(new FindAttrByNameFunction());
 	}
 
 	@Override
@@ -72,23 +73,33 @@ public class JsonExpressionUserAttributeMapper extends JsonPathUserAttributeMapp
 			return null;
 		}
 
-		Map<String, String> map = Splitter.on(",").withKeyValueSeparator("=").split(attribute);
+		//Map<String, String> map = Splitter.on(",").withKeyValueSeparator("=").split(attribute);
+
 		Map<String, String> result = new HashMap<>();
 
 		try {
+			List<Map<String, String>> mappings = new ObjectMapper().readValue(attribute, List.class);
 			Map<String, Object> env = new ObjectMapper().readValue(json, Map.class);
 
-			for (Map.Entry<String, String> entry : map.entrySet()) {
-				Object eval = AviatorEvaluator.compile(entry.getValue()).execute(env);
+			for (Map<String, String> mapping : mappings) {
+				String target = mapping.get("target");
+				String expression = mapping.get("expression");
+
+				if (target == null || expression == null) continue;
+
+				Object eval = AviatorEvaluator.compile(expression).execute(env);
 				if (eval != null) {
 					String value = String.valueOf(eval);
-					if(StringUtils.isNotEmpty(value)) {
-						result.put(entry.getKey(), value);
+					if (StringUtils.isNotEmpty(value)) {
+						result.put(target, value);
 					}
 				}
 			}
+
+//			logger.error("user profile: " + json + "from json expression: " + attribute);
+
 		} catch (Exception e) {
-			throw new IdentityBrokerException("Could not obtain user profile: " + json + "from json expression: " + map.toString(), e);
+			throw new IdentityBrokerException("Could not obtain user profile: " + json + "from json expression: " + attribute, e);
 		}
 		return result;
 
@@ -171,6 +182,45 @@ public class JsonExpressionUserAttributeMapper extends JsonPathUserAttributeMapp
 
 		public String getName() {
 			return "md5";
+		}
+	}
+
+	static class FindAttrByNameFunction extends AbstractFunction {
+		@Override
+		public AviatorObject call(Map<String, Object> env, AviatorObject arg1, AviatorObject arg2) {
+			// 获取 attrs 数组（List<Map<String, Object>>）
+			Object attrsObj = FunctionUtils.getJavaObject(arg1, env);
+			if (!(attrsObj instanceof List)) {
+				return AviatorNil.NIL;
+			}
+			List<?> attrs = (List<?>) attrsObj;
+
+			// 获取 name 参数
+			String targetName = FunctionUtils.getStringValue(arg2, env);
+
+			// 遍历查找 name 匹配的属性
+			for (Object obj : attrs) {
+				if (obj instanceof Map) {
+					Map<?, ?> attr = (Map<?, ?>) obj;
+					if (targetName.equals(attr.get("name"))) {
+						Object text = attr.get("text");
+						if (text instanceof Map) {
+							Object value = ((Map<?, ?>) text).get("value");
+							if (value != null) {
+								return new AviatorString(value.toString());
+							}
+						}
+					}
+				}
+			}
+
+			// 未找到返回 nil
+			return AviatorNil.NIL;
+		}
+
+		@Override
+		public String getName() {
+			return "findAttrByName";
 		}
 	}
 

@@ -18,7 +18,7 @@ public class WechatOpenIdentityProviderFactory extends
   AbstractIdentityProviderFactory<JustIdentityProvider>
   implements SocialIdentityProviderFactory<JustIdentityProvider> {
 
-  public static final JustAuthKey JUST_AUTH_KEY = JustAuthKey.  WE_CHAT_OPEN;
+  public static final JustAuthKey JUST_AUTH_KEY = JustAuthKey.WE_CHAT_OPEN;
 
   @Override
   public String getName() {

@@ -6,11 +6,14 @@ import com.alibaba.fastjson.JSONPath;
 import com.google.common.base.Splitter;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.logging.Logger;
+import org.keycloak.authentication.AuthenticationFlowError;
+import org.keycloak.authentication.AuthenticationFlowException;
 import org.keycloak.broker.provider.AbstractIdentityProviderMapper;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.models.*;
 import org.keycloak.provider.ProviderConfigProperty;
+import org.keycloak.services.messages.Messages;
 
 import java.util.*;
 
@@ -137,15 +140,14 @@ public class JsonPathUserAttributeMapper extends AbstractIdentityProviderMapper 
 			context.setUserAttribute(entry.getKey(), entry.getValue());
 			user.setSingleAttribute(entry.getKey(), entry.getValue());
 		}
+		// Set<String> keys = attributes.keySet();
 
-		Set<String> keys = attributes.keySet();
-
-		Set<String> existedKeys = user.getAttributes().keySet();
-		for (String existedKey : existedKeys) {
-			if (!keys.contains(existedKey)) {
-				user.removeAttribute(existedKey);
-			}
-		}
+//		Set<String> existedKeys = user.getAttributes().keySet();
+//		for (String existedKey : existedKeys) {
+//			if (!keys.contains(existedKey)) {
+//				user.removeAttribute(existedKey);
+//			}
+//		}
 	}
 
 	protected Map<String, String> getValuesByJsonPath(String json, IdentityProviderMapperModel mapperModel) {

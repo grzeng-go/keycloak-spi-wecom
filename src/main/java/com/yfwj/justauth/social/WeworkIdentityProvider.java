@@ -14,20 +14,27 @@ public class WeworkIdentityProvider extends JustIdentityProvider {
 
 	private boolean autoLoginWeworkEnabled;
 
+	private boolean scopeIsPrivate;
+
 	public WeworkIdentityProvider(KeycloakSession session, JustIdentityProviderConfig config) {
 		super(session, config);
 		autoLoginWeworkEnabled = config.isAutoLoginWeworkEnabled();
+		scopeIsPrivate = config.isScopeIsPrivate();
 	}
 
 	@Override
 	protected UriBuilder createAuthorizationUrl(AuthenticationRequest request) {
 		UriBuilder builder = super.createAuthorizationUrl(request);
 		if (autoLoginWeworkEnabled && isWework(request)) {
+			String scope = scopeIsPrivate ? "snsapi_privateinfo" : "snsapi_base";
 			String query = builder.build().getQuery();
 			builder = UriBuilder.fromUri(WEB_AUTH_URL + "?" + query);
-			builder.replaceQueryParam("scope", "snsapi_base");
+			builder.replaceQueryParam("scope", scope);
 			builder.replaceQueryParam("#wechat_redirect", "");
+		} else {
+			builder.replaceQueryParam("login_type", "CorpApp");
 		}
+		logger.debug("scopeIsPrivate: " + scopeIsPrivate + ", url: " + builder.build().toString());
 		return builder;
 	}
 

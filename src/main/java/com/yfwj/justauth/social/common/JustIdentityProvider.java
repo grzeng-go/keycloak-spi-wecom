@@ -132,12 +132,15 @@ public class JustIdentityProvider extends AbstractOAuth2IdentityProvider<JustIde
 				AuthCallback authCallback = AuthCallback.builder().code(authorizationCode).state(state).build();
 
 				// 没有check 不通过
-				String redirectUri = "https://www.yfwj.com";
+				String redirectUri = "https://sso.rccpa.com.cn/";
 				AuthRequest authRequest = provider.getAuthRequest(provider.AUTH_CONFIG, redirectUri);
 				AuthResponse<AuthUser> response = authRequest.login(authCallback);
 
 				if (response.ok()) {
 					AuthUser authUser = response.getData();
+
+					logger.debug("返回用户信息: " + authUser.getRawUserInfo());
+
 					BrokeredIdentityContext federatedIdentity = new BrokeredIdentityContext(authUser.getUuid(), providerConfig);
 
 					if (providerConfig.isStoreToken()) {
