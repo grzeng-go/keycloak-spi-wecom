@@ -30,7 +30,8 @@ public class WeworkIdentityProvider extends JustIdentityProvider {
 			String query = builder.build().getQuery();
 			builder = UriBuilder.fromUri(WEB_AUTH_URL + "?" + query);
 			builder.replaceQueryParam("scope", scope);
-			builder.replaceQueryParam("#wechat_redirect", "");
+			// ✅ 添加 #wechat_redirect 到 URL 末尾, 在企业微信内部浏览器打开,必须加上,不然打不开
+			builder.fragment("wechat_redirect");
 		} else {
 			builder.replaceQueryParam("login_type", "CorpApp");
 		}
