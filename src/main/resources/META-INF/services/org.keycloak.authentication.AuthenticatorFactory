@@ -16,3 +16,4 @@
 #
 
 com.grzeng.keycloak.authentication.authenticators.broker.IdpCheckUserExistsAuthenticatorFactory
+com.grzeng.keycloak.authentication.authenticators.resetcredentials.ResetPasswordAndSyncExecutionFactory

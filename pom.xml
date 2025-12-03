@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-			<artifactId>keycloak-parent</artifactId>
+        <artifactId>keycloak-parent</artifactId>
 		<groupId>org.keycloak</groupId>
 		<version>26.2.5</version>
 	</parent>
@@ -14,6 +14,7 @@
 	<artifactId>keycloak-justauth</artifactId>
 	<packaging>jar</packaging>
 	<properties>
+        <keycloak.version>26.2.5</keycloak.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
 		<justauth.version>1.16.7</justauth.version>
@@ -51,16 +52,42 @@
 			<artifactId>keycloak-server-spi-private</artifactId>
 			<scope>provided</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.jboss.logging</groupId>
 			<artifactId>jboss-logging</artifactId>
 			<scope>provided</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.keycloak</groupId>
 			<artifactId>keycloak-services</artifactId>
 			<scope>provided</scope>
 		</dependency>
+
+        <!-- 添加 Micrometer 核心依赖 -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+            <scope>provided</scope>  <!-- 无需指定版本，从 BOM 继承 -->
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.3.1</version>
+        </dependency>
+
+<!--        <dependency>-->
+<!--            <groupId>jakarta.ws.rs</groupId>-->
+<!--            <artifactId>jakarta.ws.rs-api</artifactId>-->
+<!--        </dependency>-->
+
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/io.quarkus/quarkus-resteasy-client &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>io.quarkus</groupId>-->
+<!--            <artifactId>quarkus-resteasy-client</artifactId>-->
+<!--        </dependency>-->
 
 		<dependency>
 			<groupId>me.zhyd.oauth</groupId>
@@ -107,6 +134,7 @@
 			<version>${junit-version}</version>
 			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 
 	<build>
