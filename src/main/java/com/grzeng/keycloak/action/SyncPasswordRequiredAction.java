@@ -7,11 +7,21 @@ import com.grzeng.api.utils.MD5Utils;
 import com.grzeng.api.utils.RSAUtils;
 import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.commons.lang.StringUtils;
+import org.keycloak.authentication.AuthenticatorUtil;
 import org.keycloak.authentication.RequiredActionContext;
 import org.keycloak.authentication.requiredactions.UpdatePassword;
 import org.jboss.logging.Logger;
+import org.keycloak.common.util.Time;
+import org.keycloak.credential.CredentialModel;
+import org.keycloak.credential.CredentialProvider;
+import org.keycloak.credential.PasswordCredentialProvider;
+import org.keycloak.credential.PasswordCredentialProviderFactory;
+import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RequiredActionConfigModel;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.credential.OTPCredentialModel;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>ProjectName: keycloak-spi-wecom </p >
@@ -24,9 +34,13 @@ import org.keycloak.models.UserModel;
  */
 public class SyncPasswordRequiredAction extends UpdatePassword {
 
-    private static final Logger log = Logger.getLogger(SyncPasswordRequiredAction.class);
+    private static final Logger logger = Logger.getLogger(SyncPasswordRequiredAction.class);
 
     private EasyGoHttpClient easyGoClient;
+
+    public SyncPasswordRequiredAction(KeycloakSession session) {
+        super(session);
+    }
 
     @Override
     public void processAction(RequiredActionContext context) {
@@ -47,10 +61,10 @@ public class SyncPasswordRequiredAction extends UpdatePassword {
     public void syncPassword(RequiredActionContext context, String password) {
         // 读取配置项（关键！）
         RequiredActionConfigModel config = context.getRealm().getRequiredActionConfigByAlias(getId());
-        String url   = config != null ? config.getConfig().get("url") : null;
-        String token      = config != null ? config.getConfig().get("token") : null;
-        String rsaKey        = config != null ? config.getConfig().get("rsaKey") : null;
-        log.infof("【密码同步配置】 url=%s | token=%s | rsa key=%s", url, token, rsaKey);
+        String url   = config != null ? config.getConfigValue("url") : null;
+        String token      = config != null ? config.getConfigValue("token") : null;
+        String rsaKey        = config != null ? config.getConfigValue("rsaKey") : null;
+        logger.infof("【密码同步配置】 url=%s | token=%s | rsa key=%s", url, token, rsaKey);
 
         UserModel user = context.getUser();
         String usernameForEasyGo = user.getFirstAttribute("EasyGo");
@@ -72,24 +86,76 @@ public class SyncPasswordRequiredAction extends UpdatePassword {
             if (userResponse != null && userResponse.getPanformJson() != null && userResponse.getPanformJson().getCoustom() != null) {
                 UserResponse.Coustom coustom = userResponse.getPanformJson().getCoustom();
                 if (coustom.getSuccess()) {
-                    log.infof("【密码同步】成功, 响应=%s", coustom);
+                    logger.infof("【密码同步】成功, 响应=%s", coustom);
                 } else {
                     if (StringUtils.equalsIgnoreCase(coustom.getStatus(), "401")) {
                         // token失效，重置easyGo
                         this.easyGoClient = null;
                     } else {
-                        log.errorf("【密码同步】失败, 响应=%s", coustom);
+                        logger.errorf("【密码同步】失败, 响应=%s", coustom);
                     }
                 }
             } else {
-                log.error("【密码同步】失败, 请求无返回");
+                logger.error("【密码同步】失败, 请求无返回");
                 this.easyGoClient = null;
             }
         } catch (Exception e) {
-            log.error("【密码同步】失败", e);
+            logger.error("【密码同步】失败", e);
             this.easyGoClient = null;
         }
 
+    }
+
+    @Override
+    public void evaluateTriggers(RequiredActionContext context) {
+        if (!AuthenticatorUtil.isPasswordValidated(context.getAuthenticationSession())) {
+            return;
+        }
+        int daysToExpirePassword = context.getRealm().getPasswordPolicy().getDaysToExpirePassword();
+        if (daysToExpirePassword != -1) {
+            PasswordCredentialProvider passwordProvider = (PasswordCredentialProvider) context.getSession().getProvider(CredentialProvider.class, PasswordCredentialProviderFactory.PROVIDER_ID);
+            CredentialModel password = passwordProvider.getPassword(context.getRealm(), context.getUser());
+            if (password != null) {
+                if (password.getCreatedDate() == null) {
+                    context.getUser().addRequiredAction(getId());
+                    logger.debug("User is required to update password");
+                } else {
+                    long timeElapsed = Time.toMillis(Time.currentTime()) - password.getCreatedDate();
+                    long timeToExpire = TimeUnit.DAYS.toMillis(daysToExpirePassword);
+
+                    if (timeElapsed > timeToExpire) {
+                        context.getUser().addRequiredAction(getId());
+                        logger.debug("User is required to update password");
+                    }
+                }
+            }
+        }
+
+        // 先检查用户是否已经有 UPDATE_PASSWORD
+        boolean hasDefaultUpdate = context.getUser().getRequiredActionsStream()
+                .anyMatch(action -> UserModel.RequiredAction.UPDATE_PASSWORD.name().equals(action));
+
+        if (hasDefaultUpdate) {
+            // 移除内置的 UPDATE_PASSWORD
+            context.getUser().removeRequiredAction(UserModel.RequiredAction.UPDATE_PASSWORD.name());
+            // 添加你自己的自定义 action（替换它）
+            context.getUser().addRequiredAction(getId());  // 替换成你的 providerId
+            // 可选：加日志，便于排查
+            logger.info(String.format("用户 %s 原有 UPDATE_PASSWORD 已替换为自定义 action", context.getUser().getUsername()));
+        }
+
+        RequiredActionConfigModel config = context.getRealm().getRequiredActionConfigByAlias(getId());
+        boolean enableOTP = Boolean.parseBoolean(config.getConfigValue("enableOTP"));
+        if (enableOTP) {
+            boolean hasTotpConfigured = context.getUser().credentialManager().isConfiguredFor(OTPCredentialModel.TYPE);
+
+            if (!hasTotpConfigured) {
+                // 未配置 → 添加 CONFIGURE_TOTP
+                context.getUser().addRequiredAction(UserModel.RequiredAction.CONFIGURE_TOTP.name());
+                // 可选：加日志，便于调试
+                logger.info(String.format("用户 %s 未配置 TOTP，已添加 CONFIGURE_TOTP required action", context.getUser().getUsername()));
+            }
+        }
     }
 
     @Override
