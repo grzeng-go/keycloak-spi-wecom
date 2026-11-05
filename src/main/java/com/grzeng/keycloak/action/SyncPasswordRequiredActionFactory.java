@@ -63,6 +63,13 @@ public class SyncPasswordRequiredActionFactory implements RequiredActionFactory 
                  .type(ProviderConfigProperty.BOOLEAN_TYPE)
                  .defaultValue(false)
                  .add()
+                 .property()
+                 .name("otpWhitelist")
+                 .label("OTP白名单")
+                 .helpText("启用OTP校验,会忽略白名单中的用户!")
+                 .type(ProviderConfigProperty.STRING_TYPE)
+                 .defaultValue("")
+                 .add()
                  .build();
     }
 

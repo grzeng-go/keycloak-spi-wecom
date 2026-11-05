@@ -147,8 +147,13 @@ public class SyncPasswordRequiredAction extends UpdatePassword {
         RequiredActionConfigModel config = context.getRealm().getRequiredActionConfigByAlias(getId());
         boolean enableOTP = Boolean.parseBoolean(config.getConfigValue("enableOTP"));
         if (enableOTP) {
+            String otpWhitelist = config.getConfigValue("otpWhitelist");
+            String usernameForEasyGo = context.getUser().getFirstAttribute("EasyGo");
+            // 按逗号拆分后做精确匹配，避免子串导致的部分用户名被误判为白名单（如 zhang 命中 zhangsan）
+            if (isInOtpWhitelist(otpWhitelist, usernameForEasyGo)) {
+                return;
+            }
             boolean hasTotpConfigured = context.getUser().credentialManager().isConfiguredFor(OTPCredentialModel.TYPE);
-
             if (!hasTotpConfigured) {
                 // 未配置 → 添加 CONFIGURE_TOTP
                 context.getUser().addRequiredAction(UserModel.RequiredAction.CONFIGURE_TOTP.name());
@@ -156,6 +161,26 @@ public class SyncPasswordRequiredAction extends UpdatePassword {
                 logger.info(String.format("用户 %s 未配置 TOTP，已添加 CONFIGURE_TOTP required action", context.getUser().getUsername()));
             }
         }
+    }
+
+    /**
+     * 判断用户是否在 OTP 白名单中。白名单以逗号分隔，逐项 trim 后做精确相等匹配，
+     * 避免 {@code String.contains} 的子串匹配造成部分用户名被误命中。
+     *
+     * @param otpWhitelist     逗号分隔的白名单配置
+     * @param usernameForEasyGo 待校验的 EasyGo 用户名
+     * @return 命中白名单返回 true
+     */
+    private boolean isInOtpWhitelist(String otpWhitelist, String usernameForEasyGo) {
+        if (StringUtils.isBlank(usernameForEasyGo) || StringUtils.isBlank(otpWhitelist)) {
+            return false;
+        }
+        for (String item : otpWhitelist.split(",")) {
+            if (usernameForEasyGo.equals(item)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
